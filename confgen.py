@@ -41,10 +41,19 @@ if __name__ == "__main__":
 
         node["public"] = pubips[i].split("/")[0]
         node["internal"] = intips[i].split("/")[0]
+        # If there are more than 3 x nodes, configure them:
+        # - The 1st node as a dedicated controller;
+        # - The 2nd and 3rd nodes as controller and worker;
+        # - All other nodes as worker.
+        # If there are less than or equal to 3 x nodes, configure them:
+        # - The 1st node as the controller;
+        # - All other nodes as worker.
         if len(names) > 3:
             if i < 3:
                 node["iscontroller"] = True
                 node["isetcd"] = True
+                if i != 0:
+                    node["isworker"] = True
             else:
                 node["isworker"] = True
         else:
@@ -60,6 +69,6 @@ if __name__ == "__main__":
     env = jinja2.Environment(loader=fsloader, trim_blocks=True, lstrip_blocks=True)
     template = env.get_template(TEMPLATE)
     rkeconfig = template.render(nodes=nodes)
-    
+
     with open("cluster.yml", "w") as f:
         f.write(rkeconfig)
