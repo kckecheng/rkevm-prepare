@@ -74,6 +74,15 @@ def poweron_vm(name):
                 logging.info(f"VM {name} is successfully powered on")
 
 
+# Reboot VM
+def poweroff_vm(name):
+    command = [GOVC_EXE, "vm.power", "-off", "-force", name]
+    logging.info(f"Poweroff VM {name}")
+    ret = run(command, False)
+    if ret:
+        logging.error(f"Fail to power off VM {name}")
+
+
 # Configure hostname
 def configure_hostname(name):
     command = [GOVC_EXE, "guest.run", "-vm", name, "hostnamectl", "set-hostname", name]
@@ -208,4 +217,10 @@ if __name__ == "__main__":
                 public = False
             configure_ip(name, nic, conf["pool"][index], conf["gateway"], public=public)
 
-    logging.info("Please reboot all VMs manually to make sure all changes take effect")
+    for name in names:
+        poweroff_vm(name)
+        poweron_vm(name)
+
+    logging.info(
+        "Please wait until all VMs come back online before the next step (create rke cluster.yml)"
+    )
